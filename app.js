@@ -1,11 +1,9 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const config = require('./config.json');
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { Util } from "./util.js";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -18,21 +16,35 @@ client.commands = new Collection();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const commandsPath = join(__dirname, "commands");
-const commandFiles = readdirSync(commandsPath).filter((file) => file.endsWith(".js"));
 
-for (const file of commandFiles) {
-	const filePath = join(commandsPath, file);
-    const command = import(filePath);
-	command.then((res) => {
-		if (res.data && res.execute) {
-			client.commands.set(res.data.name, res);
-		} else {
-			console.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
-		}
-	});
+function addCommands(baseDir, depth) {
+	if (depth >= 5) {
+		console.warn(`Went too deep while adding commands to client (${baseDir})`);
+	}
+	baseDir = baseDir || commandsPath;
+	depth = depth || 0;
+	const commandFiles = readdirSync(baseDir).filter((file) => file.endsWith(".js"));
+	const commandDirs = readdirSync(baseDir, { withFileTypes: true })
+			.filter((item) => item.isDirectory())
+			.map((item) => item.name);
 
-	
+	for (const file of commandFiles) {
+		const filePath = join(baseDir, file);
+		const command = import(filePath);
+		command.then((res) => {
+			if (res.data && res.execute) {
+				client.commands.set(res.data.name, res);
+			} else {
+				console.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
+			}
+		});	
+	}
+	for (const dir of commandDirs) {
+		addCommands(`${baseDir}/${dir}`, depth + 1)
+	}
 }
+
+addCommands();
 
 client.on(Events.InteractionCreate, async (interaction) => {
 	if (!interaction.isChatInputCommand()) return;
@@ -52,4 +64,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 });
 
+const config = Util.getConfig();
 client.login(config.token);

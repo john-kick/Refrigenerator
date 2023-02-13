@@ -1,11 +1,13 @@
-import { ScriptServer } from "@scriptserver/core";
-import { useEssentials } from "@scriptserver/essentials";
+import { JavaServer } from "@scriptserver/core";
+import { Util } from "./util.js";
+
+const config = Util.getConfig();
 
 const DEFAULT_CONFIG = {
     flavor: "vanilla",
     javaServer: {
         jar: "server.jar",
-        path: "/home/andre/server/games/minecraft/vanilla/1.19.3 with the lads/",
+        path: config.minecraftServerPath,
         args: ["-Xms4G", "-Xmx8G"]
     },
     rconConnection: {
@@ -18,8 +20,7 @@ export class MinecraftServer {
 
     constructor(config) {
         config = config || DEFAULT_CONFIG;
-        this.server = new ScriptServer(config);
-        useEssentials(this.server);
+        this.server = new JavaServer(config);
     }
 
     start() {
@@ -28,5 +29,9 @@ export class MinecraftServer {
 
     stop() {
         this.server.stop();
+    }
+
+    send(command) {
+        this.server.send(command);
     }
 }
