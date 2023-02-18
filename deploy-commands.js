@@ -1,7 +1,6 @@
 import { REST, Routes } from "discord.js";
 import fs from "node:fs";
 import { Util } from "./util.js";
-import { Util } from "./util.js";
 
 const commands = [];
 
@@ -28,8 +27,6 @@ async function getFilesToUpdate(baseDir, depth) {
 		sendUpdate();
 	}
 }
-
-const config = Util.getConfig();
 
 const config = Util.getConfig();
 const rest = new REST({ version: "10" }).setToken(config.token);

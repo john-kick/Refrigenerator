@@ -3,6 +3,8 @@ node_modules
 .eslintrc.json
 config.json
 daemon
-package-lock.json
 json
 autostart.js
+microsoft.asc
+microsoft.gog
+package-lock.json
