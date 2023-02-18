@@ -16,7 +16,7 @@ export async function execute(interaction) {
     }
 
     const fetchOptions = {cache: false, force: true}
-    const theChosenOne = members[parseInt(Math.random(members.length))];
+    const theChosenOne = members[parseInt(Math.random(members.length) * members.length)];
     const user = await interaction.client.users.fetch(theChosenOne, fetchOptions).catch((err) => console.error(err));
     user.send("You have been chosen!");
 
