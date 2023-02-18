@@ -2,3 +2,7 @@ node_modules
 .env
 .eslintrc.json
 config.json
+daemon
+package-lock.json
+json
+autostart.js

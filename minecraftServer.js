@@ -1,32 +1,27 @@
 import { ScriptServer } from "@scriptserver/core";
-import { useEssentials } from "@scriptserver/essentials";
+import { Util } from "./util.js";
 
-const DEFAULT_CONFIG = {
-    flavor: "vanilla",
-    javaServer: {
-        jar: "server.jar",
-        path: "/home/andre/server/games/minecraft/vanilla/1.19.3 with the lads/",
-        args: ["-Xms4G", "-Xmx8G"]
-    },
-    rconConnection: {
-        port: 25565,
-        password: "rconPassword"
-    }
+const DEFAULT_MCSERVER_CONFIG = {
+	flavor: "vanilla",
+	javaServer: {
+		jar: "server.jar",
+		path: Util.getConfig().minecraftServerPath,
+		args: ["-Xms4G", "-Xmx8G"]
+	}
 };
 
 export class MinecraftServer {
+	constructor(mcConfig) {
+		mcConfig = mcConfig || DEFAULT_MCSERVER_CONFIG;
+		this.server = new ScriptServer(mcConfig);
+	}
 
-    constructor(config) {
-        config = config || DEFAULT_CONFIG;
-        this.server = new ScriptServer(config);
-        useEssentials(this.server);
-    }
+	start() {
+		console.log(Util.getConfig().minecraftServerPath);
+		this.server.start();
+	}
 
-    start() {
-        this.server.start();
-    }
-
-    stop() {
-        this.server.stop();
-    }
+	stop() {
+		this.server.stop();
+	}
 }

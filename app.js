@@ -1,14 +1,13 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const config = require('./config.json');
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { Util } from "./util.js";
+
+const filePrefix = process.platform === "win32" ? "file:///" : null;
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
 client.once(Events.ClientReady, (c) => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
@@ -22,7 +21,7 @@ const commandFiles = readdirSync(commandsPath).filter((file) => file.endsWith(".
 
 for (const file of commandFiles) {
 	const filePath = join(commandsPath, file);
-    const command = import(filePath);
+	const command = import(filePrefix + filePath);
 	command.then((res) => {
 		if (res.data && res.execute) {
 			client.commands.set(res.data.name, res);
@@ -30,8 +29,6 @@ for (const file of commandFiles) {
 			console.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
 	});
-
-	
 }
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -52,4 +49,4 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 });
 
-client.login(config.token);
+client.login(Util.getConfig().token);
