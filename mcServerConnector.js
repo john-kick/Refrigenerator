@@ -10,4 +10,6 @@ export function stopServer() {
 	server.stop();
 }
 
-startServer();
+export function sendCommand(command) {
+	server.send(command);
+}

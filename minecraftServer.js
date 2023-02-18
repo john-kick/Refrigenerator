@@ -24,4 +24,8 @@ export class MinecraftServer {
 	stop() {
 		this.server.stop();
 	}
+
+	send(command) {
+		this.server.send(command);
+	}
 }
