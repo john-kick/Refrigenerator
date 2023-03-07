@@ -6,8 +6,10 @@
     "@scriptserver/essentials": "^2.0.4",
     "discord-api-types": "^0.37.35",
     "discord.js": "^14.7.1",
+    "fs-extra": "^11.1.0",
     "jquery": "^3.6.3",
-    "minecraft-server-util": "^5.3.2"
+    "minecraft-server-util": "^5.3.2",
+    "moment": "^2.29.4"
   },
   "name": "refrigenerator",
   "version": "1.0.0",
