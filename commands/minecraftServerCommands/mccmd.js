@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
-import { sendCommand } from "../../mcServerConnector.js";
+import { sendCommand } from "../../minecraft/mcServerConnector.js";
 
 export const data = new SlashCommandBuilder()
 	.setName("mccmd")

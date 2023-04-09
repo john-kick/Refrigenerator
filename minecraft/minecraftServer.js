@@ -1,5 +1,5 @@
-import { ScriptServer } from "@scriptserver/core";
-import { Util } from "./util.js";
+import { JavaServer } from "@scriptserver/core";
+import { Util } from "../util.js";
 
 const DEFAULT_MCSERVER_CONFIG = {
 	flavor: "vanilla",
@@ -13,7 +13,7 @@ const DEFAULT_MCSERVER_CONFIG = {
 export class MinecraftServer {
 	constructor(mcConfig) {
 		mcConfig = mcConfig || DEFAULT_MCSERVER_CONFIG;
-		this.server = new ScriptServer(mcConfig);
+		this.server = new JavaServer(mcConfig);
 	}
 
 	start() {
