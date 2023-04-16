@@ -74,7 +74,6 @@ async function splitImage(image, width, height) {
         height: 128
       });
       sections.push(section);
-      console.log(await section.raw().toBuffer());
     }
   }
 
