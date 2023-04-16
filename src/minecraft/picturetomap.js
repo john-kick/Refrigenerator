@@ -2,7 +2,7 @@ import pkg, { writeUncompressed } from 'prismarine-nbt';
 import { writeFile, writeFileSync, readdirSync, fstat } from "node:fs";
 import sharp from "sharp";
 import { join } from "node:path";
-import { Util } from "../util.js";
+import { Util } from "../../util.js";
 import { GuildTemplate } from 'discord.js';
 
 // createMapFromPicture('/home/andre/GrilledCheeseObamaSandwichToBeSplit.png', true, 5, 3);

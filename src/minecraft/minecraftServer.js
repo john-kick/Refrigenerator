@@ -1,5 +1,5 @@
 import { JavaServer } from "@scriptserver/core";
-import { Util } from "../util.js";
+import { Util } from "../../util.js";
 
 const DEFAULT_MCSERVER_CONFIG = {
 	flavor: "vanilla",
