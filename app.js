@@ -63,7 +63,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	}
 });
 
-setTimeout(() => {
+// setTimeout(() => {
 	client.login(Util.getConfig().token);
-}, 5000); // Give the device time to establish a network connection
+// }, 5000); // Give the device time to establish a network connection
 

@@ -1,11 +1,32 @@
 import pkg, { writeUncompressed } from 'prismarine-nbt';
-import { writeFile, readdirSync } from "node:fs";
+import { writeFile, writeFileSync, readdirSync, fstat } from "node:fs";
 import sharp from "sharp";
 import { join } from "node:path";
 import { Util } from "../util.js";
 import { GuildTemplate } from 'discord.js';
 
-export async function createMapFromPicture(picPath) {
+// createMapFromPicture('/home/andre/GrilledCheeseObamaSandwichToBeSplit.png', true, 5, 3);
+// buildCommand([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+
+export async function createMapFromPicture(imagePath, divide, width, height) {
+  width = width || 1;
+  height = height || 1;
+  
+  const image = sharp(imagePath);
+
+  if (divide) {
+    const sections = await splitImage(resizeImage(image, width, height), width, height);
+    const indices = await Promise.all(sections.map(async (section) => {
+      return await bufferToNBT(section);
+    }));
+    return buildCommand(indices);
+  } else {
+    const index = await bufferToNBT(await resizeImage(image, 1, 1).raw().toBuffer());
+    return "/give @p filled_map{map:" + index + "}";
+  }
+}
+
+async function bufferToNBT(buffer) {
   const data = pkg.comp({
     data: pkg.comp({
       banners: pkg.list(pkg.comp({})),
@@ -17,21 +38,55 @@ export async function createMapFromPicture(picPath) {
       unlimitedTracking: pkg.byte(0),
       xCenter: pkg.int(0),
       zCenter: pkg.int(0),
-      colors: pkg.byteArray(await quantize(picPath))
+      colors: pkg.byteArray(await quantize(buffer))
     }),
-    DataVersion: pkg.int(3218),
+    DataVersion: pkg.int(3218)
   });
 
   const [index, path] = getFileName();
-  writeFile(path, writeUncompressed(data), (error) => {
+  writeFileSync(path, writeUncompressed(data), (error) => {
     if (error) throw error;
-    console.log('NBT data written to file.');
   });
   return index;
 }
 
-async function quantize(picPath) {
-  const { data } = await sharp(picPath).raw().toBuffer({ resolveWithObject: true });
+function resizeImage(image, width, height) {
+  const targetWidth = width * 128;
+  const targetHeight = height * 128;
+
+  return image.resize({width: targetWidth, height: targetHeight, fit: 'fill'});
+}
+
+async function splitImage(image, width, height) {
+  const imgBuffer = await image.raw().toBuffer();
+  if (imgBuffer.length % 128*128 !== 0) {
+    throw new Error('Invalid image dimensions');
+  }
+
+  const sections = [];
+
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      const section = await image.clone().extract({
+        left: col * 128,
+        top: row * 128,
+        width: 128,
+        height: 128
+      });
+      sections.push(section);
+      console.log(await section.raw().toBuffer());
+    }
+  }
+
+  return sections;
+}
+
+function saveImage(imageBuffer, path) {
+  writeFileSync(path, imageBuffer);
+}
+
+async function quantize(image) {
+  const data = await image.raw().toBuffer();
   const palette = getColorPalette();
   const pixels = [];
   for (let i = 0; i < data.length; i += 3) {
@@ -69,7 +124,7 @@ function closestColor(pixel, palette) {
 }
 
 function getFileName() {
-    const config = Util.getConfig();
+  const config = Util.getConfig();
   const dirPath = config.minecraftServerPath + 'world/data/'; // replace with the actual directory path
 
   // find existing files with the format "map_<#>.dat"
@@ -77,9 +132,9 @@ function getFileName() {
   
   // extract the <#> part from each file name
   const usedNumbers = existingFiles.map(file => parseInt(file.match(/^map_(\d+)\.dat$/)[1]));
-  
+
   // find the lowest available <#> part
-  let nextNumber = 1;
+  let nextNumber = 0;
   while (usedNumbers.includes(nextNumber)) {
     nextNumber++;
   }
@@ -87,6 +142,47 @@ function getFileName() {
   // generate the new file name with the unique <#> part
   const newFileName = `map_${nextNumber}.dat`;
   return [nextNumber, join(dirPath, newFileName)];
+}
+
+function buildCommand(indices) {
+  const len = indices.length;
+  let command = "/summon armor_stand ~ ~" + len + " ~ {Health:0,Passengers:[{" + addCommand(indices, len) + "}]}";
+  return command;
+}
+
+function addCommand(indices, originalLen) {
+  let command = "id:\"armor_stand\","
+          + "Health:0,"
+          + "Passengers:[{"
+          +   "id:\"falling_block\","
+          +   "Time:1,"
+          +   "BlockState:{"
+          +     "Name:\"command_block\""
+          +   "},TileEntityData:{"
+          +     "auto:1,"
+          +     "Command:\"/give @p filled_map{map:" + indices[0] +"}\""
+          +   "}"
+          +   ",Passengers:[{"
+  if (indices.length > 1) {
+    command += addCommand(indices.splice(1), originalLen)
+  } else {
+    command +=  "id:\"armor_stand\","
+          + "Health:0,"
+          + "Passengers:[{"
+          +   "id:\"falling_block\","
+          +   "Time:1,"
+          +   "BlockState:{"
+          +     "Name:\"command_block\""
+          +   "},"
+          +   "TileEntityData:{"
+          +     "auto:1,"
+          +     "Command:\"fill ~ ~-" + originalLen + " ~ ~ ~ ~ air\""
+          +   "}"
+          + "}]"
+  }
+  command += "}]}]";
+
+  return command;
 }
 
 function getColorPalette() {
