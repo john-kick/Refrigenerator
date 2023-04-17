@@ -1,6 +1,6 @@
 import { MinecraftServer } from "./minecraftServer.js";
 
-const server = new MinecraftServer();
+const server: MinecraftServer = new MinecraftServer();
 
 export function startServer() {
 	server.start();
@@ -10,6 +10,6 @@ export function stopServer() {
 	server.stop();
 }
 
-export function sendCommand(command) {
+export function sendCommand(command: string) {
 	server.send(command);
 }

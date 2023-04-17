@@ -1,23 +1,33 @@
 import { JavaServer } from "@scriptserver/core";
-import { Util } from "../../util.js";
+import { minecraftServerPath } from "../config.json";
 
-const DEFAULT_MCSERVER_CONFIG = {
+interface McServerConfig {
+	flavor: string
+	javaServer: {
+		jar: string
+		path: string
+		args: string[]
+	}
+}
+
+const DEFAULT_MCSERVER_CONFIG: McServerConfig = {
 	flavor: "vanilla",
 	javaServer: {
 		jar: "server.jar",
-		path: Util.getConfig().minecraftServerPath,
+		path: minecraftServerPath,
 		args: ["-Xms4G", "-Xmx8G"]
 	}
 };
 
 export class MinecraftServer {
-	constructor(mcConfig) {
+	server: JavaServer;
+
+	constructor(mcConfig?: McServerConfig) {
 		mcConfig = mcConfig || DEFAULT_MCSERVER_CONFIG;
 		this.server = new JavaServer(mcConfig);
 	}
 
 	start() {
-		console.log(Util.getConfig().minecraftServerPath);
 		this.server.start();
 	}
 
@@ -25,7 +35,7 @@ export class MinecraftServer {
 		this.server.stop();
 	}
 
-	send(command) {
+	send(command: string) {
 		this.server.send(command);
 	}
 }

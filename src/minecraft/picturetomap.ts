@@ -1,17 +1,17 @@
-import pkg, { writeUncompressed } from 'prismarine-nbt';
+import * as nbt from "prismarine-nbt";
 import { writeFile, writeFileSync, readdirSync, fstat } from "node:fs";
 import sharp from "sharp";
 import { join } from "node:path";
-import { Util } from "../../util.js";
+import { minecraftServerPath } from "../config.json";
 import { GuildTemplate } from 'discord.js';
 
 // createMapFromPicture('/home/andre/GrilledCheeseObamaSandwichToBeSplit.png', true, 5, 3);
 // buildCommand([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
 
-export async function createMapFromPicture(imagePath, divide, width, height) {
+export async function createMapFromPicture(imagePath: string, divide?: boolean, width?: number, height?: number) {
   width = width || 1;
   height = height || 1;
-  
+
   const image = sharp(imagePath);
 
   if (divide) {
@@ -21,45 +21,94 @@ export async function createMapFromPicture(imagePath, divide, width, height) {
     }));
     return buildCommand(indices);
   } else {
-    const index = await bufferToNBT(await resizeImage(image, 1, 1).raw().toBuffer());
+    const index = await bufferToNBT(resizeImage(image, 1, 1));
     return "/give @p filled_map{map:" + index + "}";
   }
 }
 
-async function bufferToNBT(buffer) {
-  const data = pkg.comp({
-    data: pkg.comp({
-      banners: pkg.list(pkg.comp({})),
-      frames: pkg.list(pkg.comp({})),
-      dimension: pkg.string("minecraft:overworld"),
-      locked: pkg.byte(0),
-      scale: pkg.byte(0),
-      trackingPosition: pkg.byte(0),
-      unlimitedTracking: pkg.byte(0),
-      xCenter: pkg.int(0),
-      zCenter: pkg.int(0),
-      colors: pkg.byteArray(await quantize(buffer))
-    }),
-    DataVersion: pkg.int(3218)
-  });
+async function bufferToNBT(image: sharp.Sharp) {
+  const data: nbt.NBT = {
+    name: "data",
+    type: nbt.TagType.Compound,
+    value: {
+      data: {
+        type: nbt.TagType.Compound,
+        value: {
+          banners: {
+            type: nbt.TagType.List,
+            value: {
+              type: nbt.TagType.Compound,
+              value: []
+            }
+          },
+          frames: {
+            type: nbt.TagType.List,
+            value: {
+              type: nbt.TagType.Compound,
+              value: []
+            }
+          },
+          dimension: {
+            type: nbt.TagType.String,
+            value: "minecraft:overworld"
+          },
+          locked: {
+            type: nbt.TagType.Byte,
+            value: 1
+          },
+          scale: {
+            type: nbt.TagType.Byte,
+            value: 0
+          },
+          trackingPosition: {
+            type: nbt.TagType.Byte,
+            value: 0
+          },
+          unlimitedTracking: {
+            type: nbt.TagType.Byte,
+            value: 0
+          },
+          xCenter: {
+            type: nbt.TagType.Int,
+            value: 0
+          },
+          zCenter: {
+            type: nbt.TagType.Int,
+            value: 0
+          },
+          colors: {
+            type: nbt.TagType.ByteArray,
+            value: await quantize(image)
+          }
+        }
+      },
+      DataVersion: {
+        type: nbt.TagType.Int,
+        value: 3218
+      }
+    }
+  };
 
   const [index, path] = getFileName();
-  writeFileSync(path, writeUncompressed(data), (error) => {
-    if (error) throw error;
-  });
+  try {
+    writeFileSync(path, nbt.writeUncompressed(data));
+  } catch (error) {
+    console.error("Could not write data into .dat file");
+    throw error;
+  }
   return index;
 }
 
-function resizeImage(image, width, height) {
+function resizeImage(image: sharp.Sharp, width: number, height: number) {
   const targetWidth = width * 128;
   const targetHeight = height * 128;
 
-  return image.resize({width: targetWidth, height: targetHeight, fit: 'fill'});
+  return image.resize({ width: targetWidth, height: targetHeight, fit: 'fill' });
 }
 
-async function splitImage(image, width, height) {
+async function splitImage(image: sharp.Sharp, width: number, height: number) {
   const imgBuffer = await image.raw().toBuffer();
-  if (imgBuffer.length % 128*128 !== 0) {
+  if (imgBuffer.length % 128 * 128 !== 0) {
     throw new Error('Invalid image dimensions');
   }
 
@@ -80,18 +129,18 @@ async function splitImage(image, width, height) {
   return sections;
 }
 
-function saveImage(imageBuffer, path) {
+function saveImage(imageBuffer: Buffer, path: string) {
   writeFileSync(path, imageBuffer);
 }
 
-async function quantize(image) {
+async function quantize(image: sharp.Sharp) {
   const data = await image.raw().toBuffer();
   const palette = getColorPalette();
   const pixels = [];
   for (let i = 0; i < data.length; i += 3) {
     pixels[i / 3] = [data[i], data[i + 1], data[i + 2]];
   }
-  const indices = [];
+  const indices: number[] = [];
   pixels.forEach((pixel) => {
     let closest = closestColor(pixel, palette);
     indices.push(closest.index)
@@ -99,9 +148,9 @@ async function quantize(image) {
   return indices;
 }
 
-function closestColor(pixel, palette) {
+function closestColor(pixel: number[], palette: number[][]) {
   let closestColor;
-  let closestIndex;
+  let closestIndex = Number.MAX_SAFE_INTEGER;
   let closestDistance = Number.MAX_SAFE_INTEGER;
 
   for (var i = 0; i < palette.length; i++) {
@@ -118,66 +167,72 @@ function closestColor(pixel, palette) {
       closestColor = paletteColor;
     }
   }
-  
-  return {index: closestIndex, color: closestColor};
+
+  return { index: closestIndex, color: closestColor };
 }
 
-function getFileName() {
-  const config = Util.getConfig();
-  const dirPath = config.minecraftServerPath + 'world/data/'; // replace with the actual directory path
+function getFileName(): [number, string] {
+  const dirPath = minecraftServerPath + 'world/data/'; // replace with the actual directory path
 
   // find existing files with the format "map_<#>.dat"
   const existingFiles = readdirSync(dirPath).filter(file => /^map_\d+\.dat$/.test(file));
-  
+
   // extract the <#> part from each file name
-  const usedNumbers = existingFiles.map(file => parseInt(file.match(/^map_(\d+)\.dat$/)[1]));
+  const usedNumbers: number[] = [];
+  existingFiles.forEach((file) => {
+    const matchResult = file.match(/^map_(\d+)\.dat$/);
+    if (matchResult) {
+      const usedNumber = parseInt(matchResult[1]);
+      usedNumbers.push(usedNumber);
+    }
+  });
 
   // find the lowest available <#> part
   let nextNumber = 0;
   while (usedNumbers.includes(nextNumber)) {
     nextNumber++;
   }
-  
+
   // generate the new file name with the unique <#> part
   const newFileName = `map_${nextNumber}.dat`;
   return [nextNumber, join(dirPath, newFileName)];
 }
 
-function buildCommand(indices) {
+function buildCommand(indices: number[]) {
   const len = indices.length;
   let command = "/summon armor_stand ~ ~" + len + " ~ {Health:0,Passengers:[{" + addCommand(indices, len) + "}]}";
   return command;
 }
 
-function addCommand(indices, originalLen) {
+function addCommand(indices: number[], originalLen: number) {
   let command = "id:\"armor_stand\","
-          + "Health:0,"
-          + "Passengers:[{"
-          +   "id:\"falling_block\","
-          +   "Time:1,"
-          +   "BlockState:{"
-          +     "Name:\"command_block\""
-          +   "},TileEntityData:{"
-          +     "auto:1,"
-          +     "Command:\"/give @p filled_map{map:" + indices[0] +"}\""
-          +   "}"
-          +   ",Passengers:[{"
+    + "Health:0,"
+    + "Passengers:[{"
+    + "id:\"falling_block\","
+    + "Time:1,"
+    + "BlockState:{"
+    + "Name:\"command_block\""
+    + "},TileEntityData:{"
+    + "auto:1,"
+    + "Command:\"/give @p filled_map{map:" + indices[0] + "}\""
+    + "}"
+    + ",Passengers:[{"
   if (indices.length > 1) {
     command += addCommand(indices.splice(1), originalLen)
   } else {
-    command +=  "id:\"armor_stand\","
-          + "Health:0,"
-          + "Passengers:[{"
-          +   "id:\"falling_block\","
-          +   "Time:1,"
-          +   "BlockState:{"
-          +     "Name:\"command_block\""
-          +   "},"
-          +   "TileEntityData:{"
-          +     "auto:1,"
-          +     "Command:\"fill ~ ~-" + originalLen + " ~ ~ ~ ~ air\""
-          +   "}"
-          + "}]"
+    command += "id:\"armor_stand\","
+      + "Health:0,"
+      + "Passengers:[{"
+      + "id:\"falling_block\","
+      + "Time:1,"
+      + "BlockState:{"
+      + "Name:\"command_block\""
+      + "},"
+      + "TileEntityData:{"
+      + "auto:1,"
+      + "Command:\"fill ~ ~-" + originalLen + " ~ ~ ~ ~ air\""
+      + "}"
+      + "}]"
   }
   command += "}]}]";
 
