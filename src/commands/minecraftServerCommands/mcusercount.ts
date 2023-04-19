@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, Client, ApplicationCommandType } from "discord.js";
 import { Command } from "../../Command"
-import { isActive, playerCount } from "src/minecraft/serverStatus";
+import { isActive, playerCount } from "../../minecraft/serverStatus";
 
 export const McPlayerCount: Command = {
 	name: "mcplayercount",
@@ -8,7 +8,7 @@ export const McPlayerCount: Command = {
 	type: ApplicationCommandType.ChatInput,
 	run: async (client: Client, interaction: ChatInputCommandInteraction) => {
 		if (!await isActive()) {
-			interaction.reply("No server is running, so no player count could be determined.");
+			interaction.followUp("No server is running, so no player count could be determined.");
 			return;
 		}
 

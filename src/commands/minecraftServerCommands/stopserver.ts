@@ -13,12 +13,12 @@ export const StopServer: Command = {
 	type: ApplicationCommandType.ChatInput,
 	run: async (client: Client, interaction: ChatInputCommandInteraction) => {
 		if (await playerCount() > 0) {
-			await interaction.reply("There is at least one person connected to the server. Please wait until the server is empty before shutting down.");
+			await interaction.followUp("There is at least one person connected to the server. Please wait until the server is empty before shutting down.");
 			return;
 		}
 
 		stopServer();
-		await interaction.reply("Stopping server. A backup will be created.");
+		await interaction.followUp("Stopping server. A backup will be created.");
 
 		const sourceDir = "/home/andre/server/games/minecraft/1.19.3 survival with the lads/world";
 		const backupDirName = "world_" + moment().format("YYYY-MM-DD HH-mm-ss");

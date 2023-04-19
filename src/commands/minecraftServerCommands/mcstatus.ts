@@ -9,7 +9,7 @@ export const McStatus: Command = {
     run: async (client: Client, interaction: ChatInputCommandInteraction) => {
         const status = await isActive();
         if (!status) {
-            await interaction.reply("Server is not active.");
+            await interaction.followUp("Server is not active.");
             return;
         }
 

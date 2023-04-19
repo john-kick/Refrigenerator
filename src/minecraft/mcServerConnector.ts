@@ -1,4 +1,4 @@
-import { MinecraftServer } from "./minecraftServer.js";
+import { MinecraftServer } from "./minecraftServer";
 
 const server: MinecraftServer = new MinecraftServer();
 

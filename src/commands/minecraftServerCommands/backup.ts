@@ -4,7 +4,7 @@ import fse from "fs-extra";
 import path from "path";
 import { Command } from "../../Command"
 
-export const Backup: Command = {
+export const BackUp: Command = {
 	name: "backup",
 	description: "Creates a backup of the current minecraft world",
 	type: ApplicationCommandType.ChatInput,
