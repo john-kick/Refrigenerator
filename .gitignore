@@ -8,3 +8,6 @@ autostart.js
 microsoft.asc
 microsoft.gog
 package-lock.json
+.vscode
+dist
+yarn-error.log
