@@ -2,7 +2,7 @@ import * as nbt from "prismarine-nbt";
 import { writeFile, writeFileSync, readdirSync, fstat } from "node:fs";
 import sharp from "sharp";
 import { join } from "node:path";
-import { minecraftServerPath } from "../config.json";
+import { minecraftServerPath } from "../../config.json";
 import { GuildTemplate } from 'discord.js';
 
 // createMapFromPicture('/home/andre/GrilledCheeseObamaSandwichToBeSplit.png', true, 5, 3);

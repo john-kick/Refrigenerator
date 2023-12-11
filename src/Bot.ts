@@ -1,5 +1,5 @@
 import { Client, ClientOptions, Utils } from "discord.js";
-import { token } from "./config.json";
+import { token } from "../config.json";
 import ready from "./listeners/ready";
 import interactionCreate from "./listeners/interactionCreate";
 
