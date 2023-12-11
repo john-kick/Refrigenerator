@@ -1,9 +1,8 @@
 import * as nbt from "prismarine-nbt";
-import { writeFile, writeFileSync, readdirSync, fstat } from "node:fs";
+import { writeFileSync, readdirSync } from "node:fs";
 import sharp from "sharp";
 import { join } from "node:path";
-import { minecraftServerPath } from "../../config.json";
-import { GuildTemplate } from 'discord.js';
+import { minecraftServerPath } from "../config.json";
 
 // createMapFromPicture('/home/andre/GrilledCheeseObamaSandwichToBeSplit.png', true, 5, 3);
 // buildCommand([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
