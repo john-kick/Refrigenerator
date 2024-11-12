@@ -10,7 +10,7 @@ import { StopServer } from "./commands/minecraftServerCommands/stopserver";
 
 export const Commands: Command[] = [
   // BackUp,
-  // McCmd,**
+  // McCmd,
   // McStatus,
   // McPlayerCount,
   // StartServer,
