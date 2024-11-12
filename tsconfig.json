@@ -18,13 +18,14 @@
             "node_modules/@types"
         ],
         "sourceMap": false,
-        "baseUrl": "./"
+        "baseUrl": "./",
     },
     "files": [
         "src/Bot.ts"
     ],
     "include": [
-        "./**/*.ts"
+        "./**/*.ts",
+        "./cpp/**/*.cpp"
     ],
     "exclude": [
         "node_modules",
